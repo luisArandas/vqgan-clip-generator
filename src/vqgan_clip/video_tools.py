@@ -73,7 +73,7 @@ def copy_video_audio(original_video, destination_file_without_audio, output_file
     # extract original audio
     try:
         ffmpeg_command = f'ffmpeg -i {enquote_paths_with_spaces(original_video)} -vn -acodec copy {log_level_command} {enquote_paths_with_spaces(extracted_original_audio)}'
-        print(f'FFMPEG command used was:\n{ffmpeg_command}')
+        #print(f'FFMPEG command used was:\n{ffmpeg_command}')
         subprocess.Popen(ffmpeg_command, shell=True).wait()
         assert(os.path.exists(extracted_original_audio))
     except:
@@ -82,7 +82,7 @@ def copy_video_audio(original_video, destination_file_without_audio, output_file
     # if there is extracted audio from the original file, re-merge it here
     try:
         ffmpeg_command = f'ffmpeg -i {enquote_paths_with_spaces(destination_file_without_audio)} -i {enquote_paths_with_spaces(extracted_original_audio)} -c copy -map 0:v:0 -map 1:a:0 {log_level_command} {enquote_paths_with_spaces(output_file)}'
-        print(f'FFMPEG command used was:\n{ffmpeg_command}')
+        #print(f'FFMPEG command used was:\n{ffmpeg_command}')
         subprocess.Popen(ffmpeg_command, shell=True).wait()
         assert(os.path.exists(output_file))
     except:
@@ -97,8 +97,8 @@ def encode_video(output_file, input_framerate, path_to_stills=f'video_frames', o
     Note that this wrapper will print to the command line the exact ffmpeg command that was used. You can copy this and run it from the command line with any tweaks necessary.
 
     Args:
-        output_file (str, optional): Location to save the resulting mp4 video file. Defaults to f'.\output\output.mp4'.
-        path_to_stills (str, optional): Path to still images. Defaults to f'.\steps'.
+        output_file (str, optional): Location to save the resulting mp4 video file.
+        path_to_stills (str, optional): Path to still images. 
         metadata (str, optional): Metadata to be added to the comments field of the resulting video file. Defaults to ''.
         output_framerate (int, optional): The desired framerate of the output video. Defaults to 30.
         input_framerate (int, optional): An assumed framerate to use for the input stills. If the assumed input framerate is different than the desired output, then ffpmeg will interpolate to generate extra frames. For example, an assumed input of 10 and desired output of 60 will cause the resulting video to have five interpolated frames for every original frame. Defaults to [].
@@ -125,7 +125,7 @@ def encode_video(output_file, input_framerate, path_to_stills=f'video_frames', o
 
     ffmpeg_command = f'ffmpeg -y -f image2 -r {input_framerate} -i {input_path} {output_framerate_option} -vcodec {vcodec} -crf {crf} -pix_fmt yuv420p {log_level_command} {metadata_option} {enquote_paths_with_spaces(output_file)}'
     subprocess.Popen(ffmpeg_command, shell=True).wait()
-    print(f'FFMPEG command used was:\n{ffmpeg_command}')
+    #print(f'FFMPEG command used was:\n{ffmpeg_command}')
     if not os.path.exists(output_file):
         raise NameError('encode_video failed to generate an output file')
 
@@ -147,7 +147,6 @@ def RIFE_interpolation(input, output, interpolation_factor=4, metadata_title='',
 
 
     # comes from the sh, not the py
-    print("os.sep ", os.sep)
     if not os.path.exists("../arXiv2020-RIFE/inference_video.py"):
         raise NameError("RIFE NOT FOUND at ../arXiv2020-RIFE/inference_video.py")
     if not os.path.exists("../arXiv2020-RIFE/train_log/flownet.pkl"):
@@ -164,19 +163,19 @@ def RIFE_interpolation(input, output, interpolation_factor=4, metadata_title='',
     of_cmnd = f'python3 ../arXiv2020-RIFE{os.sep}inference_video.py --exp={2 if interpolation_factor==4 else 4} --model=../arXiv2020-RIFE{os.sep}train_log --video={enquote_paths_with_spaces(input)}'
     
     if verbose:
-        print(f'RIFE optical flow command is:\n{of_cmnd}')
+        print(f'[---] RIFE optical flow command is:\n{of_cmnd}')
     subprocess.Popen(of_cmnd, shell=True).wait()
-
-    print("command ", of_cmnd)
+    #print("command ", of_cmnd)
 
     # Re-encode the RIFE output to a compressed format
-    metadata_option = f'-metadata title=\"{metadata_title}\" -metadata comment=\"{metadata_comment}\" -metadata description=\"Generated with https://github.com/rkhamilton/vqgan-clip-generator\"'
+    metadata_option = f'-metadata title=\"{metadata_title}\"' #-metadata comment=\"{metadata_comment}\" -metadata description=\"Generated with https://github.com/rkhamilton/vqgan-clip-generator\"'
+    #metadata_option = f'-metadata title=\"{metadata_title}\" -metadata comment=\"{metadata_comment}\" -metadata description=\"Generated with https://github.com/rkhamilton/vqgan-clip-generator\"'
     # RIFE appends a string to the original filename of the form "original filename_4X_120fps.mp4"
     RIFE_output_filename = f'{os.path.splitext(input)[0]}_{interpolation_factor}X_{int(input_framerate*interpolation_factor)}fps.mp4'
-    print(RIFE_output_filename)
+    #print(RIFE_output_filename)
 
     if not os.path.exists(RIFE_output_filename):
-        raise NameError('RIFE_interpolation failed to generate an output file')
+        raise NameError('[---] RIFE_interpolation failed to generate an output file')
 
     if verbose:
         log_level_command = ''
@@ -184,8 +183,8 @@ def RIFE_interpolation(input, output, interpolation_factor=4, metadata_title='',
         log_level_command = '-hide_banner -loglevel error'
 
     ffmpeg_command = f'ffmpeg -y -i {enquote_paths_with_spaces(RIFE_output_filename)} -vcodec libx264 -crf 23 -pix_fmt yuv420p {log_level_command} {metadata_option} {enquote_paths_with_spaces(output)}'
-    if verbose:
-        print(f'FFMPEG command used is:\t{ffmpeg_command}')
+    # if verbose:
+    #     print(f'FFMPEG command used is:\t{ffmpeg_command}')
     subprocess.Popen(ffmpeg_command, shell=True).wait()
     if not os.path.exists(output):
         raise NameError('RIFE_interpolation failed to generate an output file')
