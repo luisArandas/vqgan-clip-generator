@@ -145,27 +145,36 @@ def RIFE_interpolation(input, output, interpolation_factor=4, metadata_title='',
     if not os.path.isfile(input):
         raise ValueError(f'input must be a file. Received {input}')
 
-    if not os.path.exists(f'arXiv2020-RIFE{os.sep}inference_video.py'):
-        raise NameError(f'RIFE NOT FOUND at arXiv2020-RIFE{os.sep}inference_video.py')
-    if not os.path.exists(f'arXiv2020-RIFE{os.sep}train_log{os.sep}flownet.pkl'):
-        raise NameError(f'RIFE MODEL NOT FOUND in arXiv2020-RIFE{os.sep}train_log{os.sep}')
+
+    # comes from the sh, not the py
+    print("os.sep ", os.sep)
+    if not os.path.exists("../arXiv2020-RIFE/inference_video.py"):
+        raise NameError("RIFE NOT FOUND at ../arXiv2020-RIFE/inference_video.py")
+    if not os.path.exists("../arXiv2020-RIFE/train_log/flownet.pkl"):
+        raise NameError("RIFE MODEL NOT FOUND in ../arXiv2020-RIFE/train_log/flownet.pkl")
 
     if os.path.exists(output):
         os.remove(output)
 
+
+
     # we need the framerate of the source video to know what name RIFE will use in the output
     input_framerate = cv2.VideoCapture(input).get(cv2.CAP_PROP_FPS)
 
-    of_cmnd = f'python arXiv2020-RIFE{os.sep}inference_video.py --exp={2 if interpolation_factor==4 else 4} --model=arXiv2020-RIFE{os.sep}train_log --video={enquote_paths_with_spaces(input)}'
+    of_cmnd = f'python3 ../arXiv2020-RIFE{os.sep}inference_video.py --exp={2 if interpolation_factor==4 else 4} --model=../arXiv2020-RIFE{os.sep}train_log --video={enquote_paths_with_spaces(input)}'
+    
     if verbose:
         print(f'RIFE optical flow command is:\n{of_cmnd}')
     subprocess.Popen(of_cmnd, shell=True).wait()
 
+    print("command ", of_cmnd)
 
     # Re-encode the RIFE output to a compressed format
     metadata_option = f'-metadata title=\"{metadata_title}\" -metadata comment=\"{metadata_comment}\" -metadata description=\"Generated with https://github.com/rkhamilton/vqgan-clip-generator\"'
     # RIFE appends a string to the original filename of the form "original filename_4X_120fps.mp4"
     RIFE_output_filename = f'{os.path.splitext(input)[0]}_{interpolation_factor}X_{int(input_framerate*interpolation_factor)}fps.mp4'
+    print(RIFE_output_filename)
+
     if not os.path.exists(RIFE_output_filename):
         raise NameError('RIFE_interpolation failed to generate an output file')
 
