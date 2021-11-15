@@ -19,7 +19,7 @@ from tqdm.auto import tqdm
 from urllib.request import urlopen
 
 import numpy as np
-
+import contextlib
 import os
 
 __all__ = ["VQGAN_CLIP_Config", "Engine"]
@@ -234,6 +234,9 @@ class Engine:
     def initialize_VQGAN_CLIP(self):
         """Prior to using a VGQAN-CLIP engine instance, it must be initialized using this method.
         """
+        # with open(os.devnull, 'w') as devnull:
+        #     with contextlib.redirect_stdout(devnull):
+        #         with contextlib.redirect_stderr(devnull):
         if self.conf.cudnn_determinism:
             torch.backends.cudnn.deterministic = True
 
@@ -246,6 +249,7 @@ class Engine:
 
         self.select_make_cutouts()    
         self.initialize_z()
+        
 
     def encode_and_append_noise_prompt(self, prompt):
         """Encodes a weighted list of random number generator seeds using CLIP and appends those to the set of prompts being used by this model instance.

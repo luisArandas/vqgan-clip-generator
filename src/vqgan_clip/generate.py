@@ -341,6 +341,7 @@ def video_frames(num_video_frames,
     # suppress stdout to keep the progress bar clear
     with open(os.devnull, 'w') as devnull:
         with contextlib.redirect_stdout(devnull):
+            # with contextlib.redirect_stderr(devnull):
             eng = Engine(eng_config)
             eng.initialize_VQGAN_CLIP()
     current_prompt_number = 0
